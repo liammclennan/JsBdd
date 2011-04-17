@@ -1,49 +1,52 @@
+var JsBdd = {};
 
-var steps = [];
+JsBdd.steps = [];
 
-steps.record = function(step) {
-  this.push(step);
+JsBdd.record = function(step) {
+  this.steps.push(step);
 };
 
-var Step = function(type, name, isError, exception) {
+JsBdd.Step = function(type, name, isError, exception) {
   this._type = type;
   this._name = name;
-  this._isError = isError;
+  this.isError = isError;
   this._exception = exception;
+  this.toString = function() {
+    return this._type + " " + this._name + " " + !this.isError;
+  };
 }
 
-function story(name, f) {
-  var exception = false;
-  try {
-    f();
-  } catch (e) {
-    exception = true;
-    steps.record(new Step('story', name, exception, e));    
+JsBdd.test = function() {
+  var anyError = false;  
+  for (var i = 0; i < this.steps.length; i++) {
+    console.log(this.steps[i].toString());
+    if (this.steps[i].isError) { 
+      anyError = true;
+    }
   }
-  if (!exception) {
-    steps.record(new Step('story', name, false));
+  if (anyError) {
+    console.log('OH No!! A test failed!');
   }
+};
 
-  for (var i = 0; i < steps.length; i++) {
-    
-  }    
+function story(name, f) {
+  JsBdd.record(new JsBdd.Step('story', name, false));  
+  f();  
 }
 
 function scenario(name, f) {
-  steps.push(arguments);
+  JsBdd.record(new JsBdd.Step('scenario', name, false));
   f();
 }
 
 function given(name, f) {
-  write("given: ");
-  steps.push(arguments);
   f();
+  JsBdd.record(new JsBdd.Step('given', name, false));
 }
 
 function when(name, f) {
-  write("when: ");
-  steps.push(arguments);
   f();
+  JsBdd.record(new JsBdd.Step('when', name, false));
 }
 
 function then(name, f) {
@@ -52,24 +55,19 @@ function then(name, f) {
     f();
   } catch (e) {
     exception = true;
-    steps.record(new Step('then', name, exception, e));    
+    JsBdd.record(new JsBdd.Step('then', name, exception, e));
   }
   if (!exception) {
-    steps.record(new Step('then', name, false));
+    JsBdd.record(new JsBdd.Step('then', name, false));    
   }
 }
 
 function and(name, f) {
-  write("and: ");
-  steps.push(arguments);
   f();
+  JsBdd.record(new JsBdd.Step('and', name, false));
 }
 
 function areEqual(first, second, message) {
-  if (first != second) throw message;
+  if (first !== second) throw message;
 }
-
-var write = function(message) {
-  $('#hello').html($('#hello').html + ' ' + message);
-};
 
